@@ -35,10 +35,10 @@ func createCollection() {
 
     group.enter()
     database.createCollection(
-        "Movies",
-        ["*"],
-        ["*"],
-        [[
+        name: "Movies",
+        read: ["*"],
+        write: ["*"],
+        rules: [[
             "label": "Name",
             "key": "name",
             "type": "text",
@@ -57,14 +57,12 @@ func createCollection() {
             switch result {
             case .failure(let error):
                 print(error)
-            case .success(var response):
-                let jsonString = response.body!.readString(length: response.body!.readableBytes) ?? ""
-                let obj = convertToDictionary(text: jsonString)
-                collectionId = obj!["$id"] as! String
-                print(collectionId)
+            case .success(let collection):
+                print(try! JSONSerialization.data(withJSONObject: collection.toMap()))
             }
             group.leave()
-        })
+        }
+    )
     group.wait()
 }
 
@@ -77,9 +75,8 @@ func listCollection() {
         switch result {
         case .failure(let error):
             print(error)
-        case .success(var response):
-            let jsonString = response.body!.readString(length: response.body!.readableBytes) ?? ""
-            print(jsonString)
+        case .success(let collectionList):
+            print(try! JSONSerialization.data(withJSONObject: collectionList.toMap()))
         }
         group.leave()
     })
@@ -95,7 +92,7 @@ func deleteCollection() {
         switch result {
         case .failure(let error):
             print(error)
-        case .success(var response):
+        case .success:
             print("collection deleted")
         }
         group.leave()
@@ -120,8 +117,8 @@ func addDoc() {
             switch result {
             case .failure(let error):
                 print(error)
-            case .success(var response):
-                print(response.body!.readString(length: response.body!.readableBytes)!)
+            case .success(let document):
+                print(try! JSONSerialization.data(withJSONObject: document.toMap()))
             }
             group.leave()
         })
@@ -137,8 +134,8 @@ func listDoc() {
         switch result {
         case .failure(let error):
             print(error)
-        case .success(var response):
-            print(response.body!.readString(length: response.body!.readableBytes)!)
+        case .success(let documentList):
+            print(try! JSONSerialization.data(withJSONObject: documentList.toMap()))
         }
         group.leave()
     })
@@ -156,22 +153,19 @@ func uploadFile() {
     let file = File(name: "nature.png", buffer: ByteBuffer(data: data))
 
     group.enter()
-    let response = storage.createFile(
+    storage.createFile(
         file: file,
         read: ["*"],
         write: [],
         completion: { result in
-            switch result {
-            case .failure(let error):
-                print(error)
-            case .success(var response):
-                let jsonString = response.body!.readString(length: response.body!.readableBytes) ?? ""
-                let obj = convertToDictionary(text: jsonString)
-                self.fileId = obj["$id"]
-                print(jsonString)
-            }
-            group.leave()
-        })
+        switch result {
+        case .failure(let error):
+            print(error)
+        case .success(let file):
+            print(try! JSONSerialization.data(withJSONObject: file.toMap()))
+        }
+        group.leave()
+    })
     group.wait()
 }
 
@@ -184,8 +178,8 @@ func deleteFile() {
         switch result {
         case .failure(let error):
             print(error)
-        case .success(var response):
-            print(response.body!.readString(length: response.body!.readableBytes)!)
+        case .success:
+            print("Success")
         }
         group.leave()
     })
@@ -200,16 +194,13 @@ func createFunction() {
     functions.create(
         name: "test function",
         execute: [],
-        env: "dart-2.12",
+        runtime: "dart-2.12",
         completion: { result in
             switch result {
             case .failure(let error):
                 print(error)
-            case .success(var response):
-                let jsonString = response.body!.readString(length: response.body!.readableBytes) ?? ""
-                let obj = convertToDictionary(text: jsonString)
-                self.functionId = obj["$id"]
-                print(jsonString)
+            case .success(let function):
+                print(try! JSONSerialization.data(withJSONObject: function.toMap()))
             }
             group.leave()
         })
@@ -225,8 +216,8 @@ func listFunctions() {
         switch result {
         case .failure(let error):
             print(error)
-        case .success(var response):
-            print(response.body!.readString(length: response.body!.readableBytes)!)
+        case .success(let functionList):
+            print(try! JSONSerialization.data(withJSONObject: functionList.toMap()))
         }
         group.leave()
     })
@@ -242,8 +233,8 @@ func deleteFunction() {
         switch result {
         case .failure(let error):
             print(error)
-        case .success(var response):
-            print(response.body!.readString(length: response.body!.readableBytes)!)
+        case .success:
+            print("Success")
         }
         group.leave()
     })
@@ -259,8 +250,8 @@ func listUsers() {
         switch result {
         case .failure(let error):
             print(error)
-        case .success(var response):
-            print(response.body!.readString(length: response.body!.readableBytes)!)
+        case .success(let userList):
+            print(try! JSONSerialization.data(withJSONObject: userList.toMap()))
         }
         group.leave()
     })
@@ -279,11 +270,8 @@ func createUser(email: String, password: String, name: String) {
             switch result {
             case .failure(let error):
                 print(error)
-            case .success(var response):
-                let jsonString = response.body!.readString(length: response.body!.readableBytes) ?? ""
-                let obj = convertToDictionary(text: jsonString)
-                self.userId = obj["$id"]
-                print(jsonString)
+            case .success(let user):
+                print(try! JSONSerialization.data(withJSONObject: user.toMap()))
             }
             group.leave()
         })
@@ -299,8 +287,8 @@ func deleteUser() {
         switch result {
         case .failure(let error):
             print(error)
-        case .success(var response):
-            print(response.body!.readString(length: response.body!.readableBytes)!)
+        case .success:
+            print("Success")
         }
         group.leave()
     })
