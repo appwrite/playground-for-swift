@@ -36,29 +36,18 @@ func createCollection() {
     group.enter()
     database.createCollection(
         name: "Movies",
-        read: ["*"],
-        write: ["*"],
-        rules: [[
-            "label": "Name",
-            "key": "name",
-            "type": "text",
-            "default": "Empty Name",
-            "required": true,
-            "array": false
-        ], [
-            "label":  "release_year",
-            "key":  "release_year",
-            "type":  "numeric",
-            "default":  1970,
-            "required":  true,
-            "array":  false
-        ]],
+        read: ["role:all"],
+        write: ["role:all"],
         completion: { result in
             switch result {
             case .failure(let error):
                 print(error)
             case .success(let collection):
                 print(try! JSONSerialization.data(withJSONObject: collection.toMap()))
+                database.createStringAttribute(
+                    collectionId: collection.$id, key: 'name', size: 60, xrequired: true)
+                database.createIntegerAttribute(
+                    collectionId: collection.$id, key: 'release_year', xrequired: true, array: false);
             }
             group.leave()
         }
@@ -107,6 +96,7 @@ func addDoc() {
     group.enter()
     database.createDocument(
         collectionId: collectionId,
+        documentId: "unique()",
         data: [
             "name": "Spider Man",
             "release_year": 1920
@@ -154,8 +144,9 @@ func uploadFile() {
 
     group.enter()
     storage.createFile(
+        fileId: "unique()",
         file: file,
-        read: ["*"],
+        read: ["role:all"],
         write: [],
         completion: { result in
         switch result {
@@ -192,6 +183,7 @@ func createFunction() {
 
     group.enter()
     functions.create(
+        functionId: "unique()",
         name: "test function",
         execute: [],
         runtime: "dart-2.12",
@@ -264,6 +256,7 @@ func createUser(email: String, password: String, name: String) {
 
     group.enter()
     users.create(
+        userId: "unique()",
         email: "email@example.com",
         password:"password",
         completion: { result in
