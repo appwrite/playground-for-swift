@@ -65,7 +65,7 @@ func createUser() {
             case .failure(let error):
                 print(error.message)
             case .success(let user):
-                print(try! JSONSerialization.data(withJSONObject: user.toMap()))
+                print(user.toMap())
             }
             group.leave()
         })
@@ -73,7 +73,7 @@ func createUser() {
 }
 
 func listUsers() {
-    print("Running list users API")
+    print("Running List Users API")
     let users = Users(client)
 
     group.enter()
@@ -82,7 +82,7 @@ func listUsers() {
         case .failure(let error):
             print(error.message)
         case .success(let userList):
-            print(try! JSONSerialization.data(withJSONObject: userList.toMap()))
+            print(userList.toMap())
         }
         group.leave()
     })
@@ -91,7 +91,7 @@ func listUsers() {
 
 func deleteUser() {
     let users = Users(client)
-    print("Running delete user API")
+    print("Running Delete User API")
 
     group.enter()
     users.delete(userId: userId, completion: { result in
@@ -99,7 +99,7 @@ func deleteUser() {
         case .failure(let error):
             print(error.message)
         case .success:
-            print("Success")
+            print("User deleted")
         }
         group.leave()
     })
@@ -108,7 +108,7 @@ func deleteUser() {
 
 func createCollection() {
     let database = Database(client)
-    print("Running create collection API")
+    print("Running Create Collection API")
 
     group.enter()
     database.createCollection(
@@ -140,8 +140,8 @@ func createCollection() {
                     collectionId: collectionId,
                     key:"rating",
                     xrequired: true,
-                    min: "0.0",
-                    max: "99.99",
+                    min: 0.0,
+                    max: 99.99,
                     array: false
                 )
                 database.createBooleanAttribute(
@@ -159,7 +159,7 @@ func createCollection() {
 
 func listCollection() {
     let database = Database(client)
-    print("Running list collection API")
+    print("Running List Collection API")
 
     group.enter()
     database.listCollections(completion: { result in
@@ -167,7 +167,7 @@ func listCollection() {
         case .failure(let error):
             print(error.message)
         case .success(let collectionList):
-            print(try! JSONSerialization.data(withJSONObject: collectionList.toMap()))
+            print(collectionList.toMap())
         }
         group.leave()
     })
@@ -176,7 +176,7 @@ func listCollection() {
 
 func deleteCollection() {
     let database = Database(client)
-    print("Running delete collection API")
+    print("Running Delete Collection API")
 
     group.enter()
     database.deleteCollection(collectionId: collectionId, completion: { result in
@@ -184,7 +184,7 @@ func deleteCollection() {
         case .failure(let error):
             print(error.message)
         case .success:
-            print("collection deleted")
+            print("Collection deleted")
         }
         group.leave()
     })
@@ -213,7 +213,7 @@ func createDocument() {
                 print(error.message)
             case .success(let document):
                 documentId = document.id
-                print(try! JSONSerialization.data(withJSONObject: document.toMap()))
+                print(document.toMap())
             }
             group.leave()
         })
@@ -230,7 +230,7 @@ func listDocuments() {
         case .failure(let error):
             print(error.message)
         case .success(let documentList):
-            print(try! JSONSerialization.data(withJSONObject: documentList.toMap()))
+            print(documentList.toMap())
         }
         group.leave()
     })
@@ -278,7 +278,7 @@ func uploadFile() {
         case .failure(let error):
             print(error.message)
         case .success(let file):
-            print(try! JSONSerialization.data(withJSONObject: file.toMap()))
+            print(file.toMap())
         }
         group.leave()
     })
@@ -295,7 +295,7 @@ func listFiles() {
         case .failure(let error):
             print(error.message)
         case .success(let fileList):
-            print(try! JSONSerialization.data(withJSONObject: fileList.toMap()))
+            print(fileList.toMap())
         }
         group.leave()
     }
@@ -312,7 +312,7 @@ func deleteFile() {
         case .failure(let error):
             print(error.message)
         case .success:
-            print("Success")
+            print("File Deleted")
         }
         group.leave()
     })
@@ -334,7 +334,7 @@ func createFunction() {
             case .failure(let error):
                 print(error.message)
             case .success(let function):
-                print(try! JSONSerialization.data(withJSONObject: function.toMap()))
+                print(function.toMap())
             }
             group.leave()
         })
@@ -351,7 +351,7 @@ func listFunctions() {
         case .failure(let error):
             print(error.message)
         case .success(let functionList):
-            print(try! JSONSerialization.data(withJSONObject: functionList.toMap()))
+            print(functionList.toMap())
         }
         group.leave()
     })
@@ -368,7 +368,7 @@ func deleteFunction() {
         case .failure(let error):
             print(error.message)
         case .success:
-            print("Success")
+            print("Function deleted")
         }
         group.leave()
     })
