@@ -10,6 +10,7 @@ var collectionId = ""
 var fileId = ""
 var userId = ""
 var functionId = ""
+var documentId = ""
 
 let client = Client()
     .setEndpoint(host)
@@ -26,28 +27,129 @@ func convertToDictionary(text: String) -> [String: Any]? {
 }
 
 func main() {
+    
+    createUser()
+    listUsers()
+    deleteUser()
+    
     createCollection()
+    listCollection()
+    defer {
+        deleteCollection()
+    }
+    
+    createDocument()
+    listDocuments()
+    deleteDocument()
+    
+    createFunction()
+    listFunctions()
+    deleteFunction()
+    
+    uploadFile()
+    listFiles()
+    deleteFile()
+}
+
+func createUser() {
+    print("Running create user API")
+    let users = Users(client)
+
+    group.enter()
+    users.create(
+        userId: "unique()",
+        email: "email@example.com",
+        password:"password",
+        completion: { result in
+            switch result {
+            case .failure(let error):
+                print(error.message)
+            case .success(let user):
+                print(user.toMap())
+            }
+            group.leave()
+        })
+    group.wait()
+}
+
+func listUsers() {
+    print("Running List Users API")
+    let users = Users(client)
+
+    group.enter()
+    users.list(completion: { result in
+        switch result {
+        case .failure(let error):
+            print(error.message)
+        case .success(let userList):
+            print(userList.toMap())
+        }
+        group.leave()
+    })
+    group.wait()
+}
+
+func deleteUser() {
+    let users = Users(client)
+    print("Running Delete User API")
+
+    group.enter()
+    users.delete(userId: userId, completion: { result in
+        switch result {
+        case .failure(let error):
+            print(error.message)
+        case .success:
+            print("User deleted")
+        }
+        group.leave()
+    })
+    group.wait()
 }
 
 func createCollection() {
     let database = Database(client)
-    print("Running create collection API")
+    print("Running Create Collection API")
 
     group.enter()
     database.createCollection(
+        collectionId: "movies",
         name: "Movies",
+        permission: "document",
         read: ["role:all"],
         write: ["role:all"],
         completion: { result in
             switch result {
             case .failure(let error):
-                print(error)
+                print(error.message)
             case .success(let collection):
-                print(try! JSONSerialization.data(withJSONObject: collection.toMap()))
+                print(collection.toMap())
+                collectionId = collection.id
                 database.createStringAttribute(
-                    collectionId: collection.$id, key: 'name', size: 60, xrequired: true)
+                    collectionId: collection.id,
+                    key: "name",
+                    size: 60,
+                    xrequired: true
+                )
                 database.createIntegerAttribute(
-                    collectionId: collection.$id, key: 'release_year', xrequired: true, array: false);
+                    collectionId: collection.id,
+                    key: "release_year",
+                    xrequired: true,
+                    array: false
+                )
+                database.createFloatAttribute(
+                    collectionId: collectionId,
+                    key:"rating",
+                    xrequired: true,
+                    min: 0.0,
+                    max: 99.99,
+                    array: false
+                )
+                database.createBooleanAttribute(
+                    collectionId: collectionId,
+                    key: "kids",
+                    xrequired: true,
+                    array: false
+                )
             }
             group.leave()
         }
@@ -57,15 +159,15 @@ func createCollection() {
 
 func listCollection() {
     let database = Database(client)
-    print("Running list collection API")
+    print("Running List Collection API")
 
     group.enter()
     database.listCollections(completion: { result in
         switch result {
         case .failure(let error):
-            print(error)
+            print(error.message)
         case .success(let collectionList):
-            print(try! JSONSerialization.data(withJSONObject: collectionList.toMap()))
+            print(collectionList.toMap())
         }
         group.leave()
     })
@@ -74,22 +176,22 @@ func listCollection() {
 
 func deleteCollection() {
     let database = Database(client)
-    print("Running delete collection API")
+    print("Running Delete Collection API")
 
     group.enter()
     database.deleteCollection(collectionId: collectionId, completion: { result in
         switch result {
         case .failure(let error):
-            print(error)
+            print(error.message)
         case .success:
-            print("collection deleted")
+            print("Collection deleted")
         }
         group.leave()
     })
     group.wait()
 }
 
-func addDoc() {
+func createDocument() {
     let database = Database(client)
     print("Running Add Document API")
 
@@ -99,23 +201,26 @@ func addDoc() {
         documentId: "unique()",
         data: [
             "name": "Spider Man",
-            "release_year": 1920
+            "release_year": 1920,
+            "rating": 99.5,
+            "kids": false
         ],
-        read: ["*"],
-        write: ["*"],
+        read: ["role:all"],
+        write: ["role:all"],
         completion: { result in
             switch result {
             case .failure(let error):
-                print(error)
+                print(error.message)
             case .success(let document):
-                print(try! JSONSerialization.data(withJSONObject: document.toMap()))
+                documentId = document.id
+                print(document.toMap())
             }
             group.leave()
         })
     group.wait()
 }
 
-func listDoc() {
+func listDocuments() {
     let database = Database(client)
     print("Running List Document API")
 
@@ -123,12 +228,32 @@ func listDoc() {
     database.listDocuments(collectionId: collectionId, completion: { result in
         switch result {
         case .failure(let error):
-            print(error)
+            print(error.message)
         case .success(let documentList):
-            print(try! JSONSerialization.data(withJSONObject: documentList.toMap()))
+            print(documentList.toMap())
         }
         group.leave()
     })
+    group.wait()
+}
+
+func deleteDocument() {
+    let database = Database(client)
+    print("Running Delete Document API")
+    
+    group.enter()
+    database.deleteDocument(
+        collectionId: collectionId,
+        documentId: documentId
+    ) { result in
+        switch result {
+        case .failure(let error):
+            print(error.message)
+        case .success:
+            print("Success")
+        }
+        group.leave()
+    }
     group.wait()
 }
 
@@ -151,12 +276,29 @@ func uploadFile() {
         completion: { result in
         switch result {
         case .failure(let error):
-            print(error)
+            print(error.message)
         case .success(let file):
-            print(try! JSONSerialization.data(withJSONObject: file.toMap()))
+            print(file.toMap())
         }
         group.leave()
     })
+    group.wait()
+}
+
+func listFiles() {
+    let storage = Storage(client)
+    print("Running List File API")
+    
+    group.enter()
+    storage.listFiles { result in
+        switch result {
+        case .failure(let error):
+            print(error.message)
+        case .success(let fileList):
+            print(fileList.toMap())
+        }
+        group.leave()
+    }
     group.wait()
 }
 
@@ -168,9 +310,9 @@ func deleteFile() {
     storage.deleteFile(fileId: fileId, completion: { result in
         switch result {
         case .failure(let error):
-            print(error)
+            print(error.message)
         case .success:
-            print("Success")
+            print("File Deleted")
         }
         group.leave()
     })
@@ -186,13 +328,13 @@ func createFunction() {
         functionId: "unique()",
         name: "test function",
         execute: [],
-        runtime: "dart-2.12",
+        runtime: "dart-2.14",
         completion: { result in
             switch result {
             case .failure(let error):
-                print(error)
+                print(error.message)
             case .success(let function):
-                print(try! JSONSerialization.data(withJSONObject: function.toMap()))
+                print(function.toMap())
             }
             group.leave()
         })
@@ -207,9 +349,9 @@ func listFunctions() {
     functions.list(completion: { result in
         switch result {
         case .failure(let error):
-            print(error)
+            print(error.message)
         case .success(let functionList):
-            print(try! JSONSerialization.data(withJSONObject: functionList.toMap()))
+            print(functionList.toMap())
         }
         group.leave()
     })
@@ -224,64 +366,9 @@ func deleteFunction() {
     functions.delete(functionId: functionId, completion: { result in
         switch result {
         case .failure(let error):
-            print(error)
+            print(error.message)
         case .success:
-            print("Success")
-        }
-        group.leave()
-    })
-    group.wait()
-}
-
-func listUsers() {
-    print("Running list users API")
-    let users = Users(client)
-
-    group.enter()
-    users.list(completion: { result in
-        switch result {
-        case .failure(let error):
-            print(error)
-        case .success(let userList):
-            print(try! JSONSerialization.data(withJSONObject: userList.toMap()))
-        }
-        group.leave()
-    })
-    group.wait()
-}
-
-func createUser(email: String, password: String, name: String) {
-    print("Running create user API")
-    let users = Users(client)
-
-    group.enter()
-    users.create(
-        userId: "unique()",
-        email: "email@example.com",
-        password:"password",
-        completion: { result in
-            switch result {
-            case .failure(let error):
-                print(error)
-            case .success(let user):
-                print(try! JSONSerialization.data(withJSONObject: user.toMap()))
-            }
-            group.leave()
-        })
-    group.wait()
-}
-
-func deleteUser() {
-    let users = Users(client)
-    print("Running delete user API")
-
-    group.enter()
-    users.delete(userId: userId, completion: { result in
-        switch result {
-        case .failure(let error):
-            print(error)
-        case .success:
-            print("Success")
+            print("Function deleted")
         }
         group.leave()
     })
