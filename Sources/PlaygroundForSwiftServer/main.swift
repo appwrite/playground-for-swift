@@ -11,6 +11,7 @@ var fileId = ""
 var userId = ""
 var functionId = ""
 var documentId = ""
+var bucketId = ""
 
 let client = Client()
     .setEndpoint(host)
@@ -46,9 +47,14 @@ func main() {
     listFunctions()
     deleteFunction()
     
+    createBucket()
     uploadFile()
     listFiles()
     deleteFile()
+
+    defer {
+        deleteBucket()
+    }
 }
 
 func createUser() {
@@ -257,6 +263,30 @@ func deleteDocument() {
     group.wait()
 }
 
+func createBucket() {
+    let storage = Storage(client)
+    print("Running Create Bucket API")
+
+    group.enter()
+    storage.createBucket(
+        bucketId: "unique()",
+        name: "Awesome Bucket",
+        permission: "bucket",
+        read: ["role:all"],
+        write: ["role:all"],
+        completion: { result in
+        switch result {
+        case .failure(let error):
+            print(error.message)
+        case .success(let bucket):
+            bucketId = bucket.id
+            print(bucket.toMap())
+        }
+        group.leave()
+    })
+    group.wait()
+}
+
 func uploadFile() {
     let storage = Storage(client)
     print("Running Upload File API")
@@ -269,6 +299,7 @@ func uploadFile() {
 
     group.enter()
     storage.createFile(
+        bucketId: bucketId,
         fileId: "unique()",
         file: file,
         read: ["role:all"],
@@ -290,7 +321,7 @@ func listFiles() {
     print("Running List File API")
     
     group.enter()
-    storage.listFiles { result in
+    storage.listFiles(bucketId: bucketId) { result in
         switch result {
         case .failure(let error):
             print(error.message)
@@ -307,12 +338,30 @@ func deleteFile() {
     print("Running Delete File API")
 
     group.enter()
-    storage.deleteFile(fileId: fileId, completion: { result in
+    storage.deleteFile(bucketId: bucketId, fileId: fileId, completion: { result in
         switch result {
         case .failure(let error):
             print(error.message)
         case .success:
             print("File Deleted")
+        }
+        group.leave()
+    })
+    group.wait()
+}
+
+
+func deleteBucket() {
+    let storage = Storage(client)
+    print("Running Delete Bucket API")
+
+    group.enter()
+    storage.deleteBucket(bucketId: bucketId, completion: { result in
+        switch result {
+        case .failure(let error):
+            print(error.message)
+        case .success:
+            print("Bucket Deleted")
         }
         group.leave()
     })
