@@ -12,7 +12,7 @@ Appwrite playground is a simple way to explore the Appwrite API and Appwrite Swi
 This playground doesn't include any Appwrite best practices, but rather intended to show some of the most simple examples and use cases of using the Appwrite API in your Swift application.
 
 ## System Requirements
-* You have readily available Appwrite running instance (localhost in most cases).
+* An Appwrite instance.
 * Create a project in Appwrite instance using console
 * Generate a secret key in the Appwrite instance using console
 
@@ -21,7 +21,13 @@ This playground doesn't include any Appwrite best practices, but rather intended
 2. Open `Sources/PlaygroundForSwiftServer/main.swift` file
 3. Copy the project id, endpoint, secret key from the Appwrite Console
 4. Update project id, endpoint, secret key by copying from the console in the `Sources/PlaygroundForSwiftServer/main.swift` file
-5. Run the `main` function in the file
+5. Run the playground:
+    - Xcode:
+        - Click **Run** with the `PlaygroundForSwiftServer` scheme selected
+    - Command Line:
+        - Execute `swift run` in the root of the repository
+    - Docker:
+        - Execute `docker compose up` 
 6. You will see the JSON response in the console
 
 ### API Covered in Playground.
