@@ -11,6 +11,7 @@ var fileId = ""
 var userId = ""
 var functionId = ""
 var documentId = ""
+var bucketId = ""
 
 let client = Client()
     .setEndpoint(host)
@@ -27,28 +28,28 @@ func convertToDictionary(text: String) -> [String: Any]? {
 }
 
 func main() {
-    
     createUser()
     listUsers()
     deleteUser()
-    
+
     createCollection()
     listCollection()
-    defer {
-        deleteCollection()
-    }
-    
     createDocument()
     listDocuments()
     deleteDocument()
-    
+    deleteCollection()
+
     createFunction()
     listFunctions()
     deleteFunction()
-    
+
+    createBucket()
     uploadFile()
     listFiles()
     deleteFile()
+    deleteBucket()
+    
+    print("Playground ran successfully!")
 }
 
 func createUser() {
@@ -59,16 +60,17 @@ func createUser() {
     users.create(
         userId: "unique()",
         email: "email@example.com",
-        password:"password",
-        completion: { result in
-            switch result {
-            case .failure(let error):
-                print(error.message)
-            case .success(let user):
-                print(user.toMap())
-            }
-            group.leave()
-        })
+        password:"password"
+    ) { result in
+        switch result {
+        case .failure(let error):
+            print(error.message)
+        case .success(let user):
+            userId = user.id
+            print(user.toMap())
+        }
+        group.leave()
+    }
     group.wait()
 }
 
@@ -77,7 +79,7 @@ func listUsers() {
     let users = Users(client)
 
     group.enter()
-    users.list(completion: { result in
+    users.list { result in
         switch result {
         case .failure(let error):
             print(error.message)
@@ -85,7 +87,7 @@ func listUsers() {
             print(userList.toMap())
         }
         group.leave()
-    })
+    }
     group.wait()
 }
 
@@ -94,7 +96,7 @@ func deleteUser() {
     print("Running Delete User API")
 
     group.enter()
-    users.delete(userId: userId, completion: { result in
+    users.delete(userId: userId) { result in
         switch result {
         case .failure(let error):
             print(error.message)
@@ -102,7 +104,7 @@ func deleteUser() {
             print("User deleted")
         }
         group.leave()
-    })
+    }
     group.wait()
 }
 
@@ -112,48 +114,101 @@ func createCollection() {
 
     group.enter()
     database.createCollection(
-        collectionId: "movies",
+        collectionId: "unique()",
         name: "Movies",
         permission: "document",
         read: ["role:all"],
-        write: ["role:all"],
-        completion: { result in
-            switch result {
-            case .failure(let error):
-                print(error.message)
-            case .success(let collection):
-                print(collection.toMap())
-                collectionId = collection.id
-                database.createStringAttribute(
-                    collectionId: collection.id,
-                    key: "name",
-                    size: 60,
-                    xrequired: true
-                )
-                database.createIntegerAttribute(
-                    collectionId: collection.id,
-                    key: "release_year",
-                    xrequired: true,
-                    array: false
-                )
-                database.createFloatAttribute(
-                    collectionId: collectionId,
-                    key:"rating",
-                    xrequired: true,
-                    min: 0.0,
-                    max: 99.99,
-                    array: false
-                )
-                database.createBooleanAttribute(
-                    collectionId: collectionId,
-                    key: "kids",
-                    xrequired: true,
-                    array: false
-                )
+        write: ["role:all"]
+    ) { result in
+        switch result {
+        case .failure(let error):
+            print(error.message)
+        case .success(let collection):
+            print(collection.toMap())
+            collectionId = collection.id
+            
+            group.enter()
+            database.createStringAttribute(
+                collectionId: collectionId,
+                key: "name",
+                size: 60,
+                xrequired: true
+            ) { res in
+                switch res {
+                case .failure(let error):
+                    print(error.message)
+                case .success(let attr):
+                    print(attr.toMap())
+                }
+                group.leave()
             }
-            group.leave()
+            group.enter()
+            database.createIntegerAttribute(
+                collectionId: collectionId,
+                key: "releaseYear",
+                xrequired: true,
+                array: false
+            ) { res in
+                switch res {
+                case .failure(let error):
+                    print(error.message)
+                case .success(let attr):
+                    print(attr.toMap())
+                }
+                group.leave()
+            }
+            group.enter()
+            database.createFloatAttribute(
+                collectionId: collectionId,
+                key:"rating",
+                xrequired: true,
+                min: 0.0,
+                max: 99.99,
+                array: false
+            ) { res in
+                switch res {
+                case .failure(let error):
+                    print(error.message)
+                case .success(let attr):
+                    print(attr.toMap())
+                }
+                group.leave()
+            }
+            group.enter()
+            database.createBooleanAttribute(
+                collectionId: collectionId,
+                key: "kids",
+                xrequired: true,
+                array: false
+            ) { res in
+                switch res {
+                case .failure(let error):
+                    print(error.message)
+                case .success(let attr):
+                    print(attr.toMap())
+                }
+                group.leave()
+            }
+            group.enter()
+            sleep(3)
+            database.createIndex(
+                collectionId: collectionId,
+                key: "name_email_index",
+                type: "fulltext",
+                attributes: ["name", "email"]
+            ) { res in
+                switch res {
+                case .failure(let error):
+                    print(error.message)
+                case .success(let attr):
+                    print(attr.toMap())
+                }
+                sleep(2)
+                group.leave()
+            }
         }
-    )
+        group.leave()
+    }
     group.wait()
 }
 
@@ -162,7 +217,7 @@ func listCollection() {
     print("Running List Collection API")
 
     group.enter()
-    database.listCollections(completion: { result in
+    database.listCollections { result in
         switch result {
         case .failure(let error):
             print(error.message)
@@ -170,7 +225,7 @@ func listCollection() {
             print(collectionList.toMap())
         }
         group.leave()
-    })
+    }
     group.wait()
 }
 
@@ -179,7 +234,7 @@ func deleteCollection() {
     print("Running Delete Collection API")
 
     group.enter()
-    database.deleteCollection(collectionId: collectionId, completion: { result in
+    database.deleteCollection(collectionId: collectionId) { result in
         switch result {
         case .failure(let error):
             print(error.message)
@@ -187,7 +242,7 @@ func deleteCollection() {
             print("Collection deleted")
         }
         group.leave()
-    })
+    }
     group.wait()
 }
 
@@ -201,22 +256,22 @@ func createDocument() {
         documentId: "unique()",
         data: [
             "name": "Spider Man",
-            "release_year": 1920,
+            "releaseYear": 1920,
             "rating": 99.5,
             "kids": false
         ],
         read: ["role:all"],
-        write: ["role:all"],
-        completion: { result in
-            switch result {
-            case .failure(let error):
-                print(error.message)
-            case .success(let document):
-                documentId = document.id
-                print(document.toMap())
-            }
-            group.leave()
-        })
+        write: ["role:all"]
+    ) { result in
+        switch result {
+        case .failure(let error):
+            print(error.message)
+        case .success(let document):
+            documentId = document.id
+            print(document.toMap())
+        }
+        group.leave()
+    }
     group.wait()
 }
 
@@ -225,7 +280,7 @@ func listDocuments() {
     print("Running List Document API")
 
     group.enter()
-    database.listDocuments(collectionId: collectionId, completion: { result in
+    database.listDocuments(collectionId: collectionId) { result in
         switch result {
         case .failure(let error):
             print(error.message)
@@ -233,7 +288,7 @@ func listDocuments() {
             print(documentList.toMap())
         }
         group.leave()
-    })
+    }
     group.wait()
 }
 
@@ -257,31 +312,65 @@ func deleteDocument() {
     group.wait()
 }
 
+func createBucket() {
+    let storage = Storage(client)
+    print("Running Create Bucket API")
+
+    group.enter()
+    storage.createBucket(
+        bucketId: "unique()",
+        name: "Awesome Bucket",
+        permission: "bucket",
+        read: ["role:all"],
+        write: ["role:all"]
+    ) { result in
+        switch result {
+        case .failure(let error):
+            print(error.message)
+        case .success(let bucket):
+            bucketId = bucket.id
+            print(bucket.toMap())
+        }
+        group.leave()
+    }
+    group.wait()
+}
+
 func uploadFile() {
     let storage = Storage(client)
     print("Running Upload File API")
 
-    guard let data = FileManager.default.contents(atPath: "./nature.png") else {
+    guard let path = Bundle.module.path(
+        forResource: "nature",
+        ofType: "jpg"
+    ), let data = try? Data(contentsOf: URL(fileURLWithPath: path)) else {
+        print("Failed to load resource")
         return
     }
-
-    let file = File(name: "nature.png", buffer: ByteBuffer(data: data))
+    
+    let file = File(
+        name: "nature.jpg",
+        buffer: ByteBuffer(data: data)
+    )
 
     group.enter()
     storage.createFile(
+        bucketId: bucketId,
         fileId: "unique()",
         file: file,
         read: ["role:all"],
         write: [],
-        completion: { result in
+        onProgress: nil
+    ) { result in
         switch result {
         case .failure(let error):
             print(error.message)
         case .success(let file):
+            fileId = file.id
             print(file.toMap())
         }
         group.leave()
-    })
+    }
     group.wait()
 }
 
@@ -290,7 +379,7 @@ func listFiles() {
     print("Running List File API")
     
     group.enter()
-    storage.listFiles { result in
+    storage.listFiles(bucketId: bucketId) { result in
         switch result {
         case .failure(let error):
             print(error.message)
@@ -307,7 +396,7 @@ func deleteFile() {
     print("Running Delete File API")
 
     group.enter()
-    storage.deleteFile(fileId: fileId, completion: { result in
+    storage.deleteFile(bucketId: bucketId, fileId: fileId) { result in
         switch result {
         case .failure(let error):
             print(error.message)
@@ -315,7 +404,25 @@ func deleteFile() {
             print("File Deleted")
         }
         group.leave()
-    })
+    }
+    group.wait()
+}
+
+
+func deleteBucket() {
+    let storage = Storage(client)
+    print("Running Delete Bucket API")
+
+    group.enter()
+    storage.deleteBucket(bucketId: bucketId) { result in
+        switch result {
+        case .failure(let error):
+            print(error.message)
+        case .success:
+            print("Bucket Deleted")
+        }
+        group.leave()
+    }
     group.wait()
 }
 
@@ -326,18 +433,19 @@ func createFunction() {
     group.enter()
     functions.create(
         functionId: "unique()",
-        name: "test function",
+        name: "Test Function",
         execute: [],
-        runtime: "dart-2.14",
-        completion: { result in
-            switch result {
-            case .failure(let error):
-                print(error.message)
-            case .success(let function):
-                print(function.toMap())
-            }
-            group.leave()
-        })
+        runtime: "python-3.9"
+    ) { result in
+        switch result {
+        case .failure(let error):
+            print(error.message)
+        case .success(let function):
+            functionId = function.id
+            print(function.toMap())
+        }
+        group.leave()
+    }
     group.wait()
 }
 
@@ -346,7 +454,7 @@ func listFunctions() {
     print("Running List Functions API")
 
     group.enter()
-    functions.list(completion: { result in
+    functions.list { result in
         switch result {
         case .failure(let error):
             print(error.message)
@@ -354,7 +462,7 @@ func listFunctions() {
             print(functionList.toMap())
         }
         group.leave()
-    })
+    }
     group.wait()
 }
 
@@ -363,7 +471,7 @@ func deleteFunction() {
     print("Running Delete Function API")
 
     group.enter()
-    functions.delete(functionId: functionId, completion: { result in
+    functions.delete(functionId: functionId) { result in
         switch result {
         case .failure(let error):
             print(error.message)
@@ -371,7 +479,7 @@ func deleteFunction() {
             print("Function deleted")
         }
         group.leave()
-    })
+    }
     group.wait()
 }
 

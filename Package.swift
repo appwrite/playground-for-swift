@@ -5,10 +5,13 @@ import PackageDescription
 
 let package = Package(
     name: "PlaygroundForSwiftServer",
+    platforms: [
+        .macOS(.v11)
+    ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(name: "Appwrite", url: "https://github.com/appwrite/sdk-for-swift", from: "0.2.0")
+        .package(name: "Appwrite", url: "https://github.com/appwrite/sdk-for-swift", from: "0.3.0")
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -17,7 +20,11 @@ let package = Package(
             name: "PlaygroundForSwiftServer",
             dependencies: [
                 "Appwrite"
-            ]),
+            ],
+            resources: [
+                .process("Resources/nature.jpg")
+            ]
+        ),
         .testTarget(
             name: "PlaygroundForSwiftServerTests",
             dependencies: ["PlaygroundForSwiftServer"]),
