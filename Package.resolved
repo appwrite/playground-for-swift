@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/appwrite/sdk-for-swift",
         "state": {
           "branch": null,
-          "revision": "6ebea9b26c672779a4ba046180dac65312ae77af",
-          "version": "0.3.0"
+          "revision": "d3b0a68cbb5c8f77a4accdcd4d0cae2c72a01356",
+          "version": "0.6.0"
         }
       },
       {
