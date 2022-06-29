@@ -4,7 +4,7 @@ import Foundation
 
 let host = "YOUR_ENDPOINT"
 let projectId = "test"
-let apiKey = "71cb32ef798c2b7aa53550ab99d67ffe756ea3c7daaaf460fcbd86fd95cb57ae9415a8995ea33ba9d8498f87be5129bb003d94bf452bc25daa7dcc04987bec02319caf0cbda7d20caa5b351638f42577b879506a63d4ba2e06cc53fc1ea33265f57ce788696f05db0ec291e667b44c64df1c29cbe2aaa1a402abe127f353d914"
+let apiKey = "71cb32ef798c2b7aa...3d914"
 
 var databaseId = ""
 var collectionId = ""
