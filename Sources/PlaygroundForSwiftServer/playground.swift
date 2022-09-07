@@ -54,7 +54,7 @@ func createUser() async throws {
 
     do {
         let user = try await users.create(
-            userId: "unique()",
+            userId: ID.unique(),
             email: "email@example.com",
             password:"password"
         )
@@ -78,11 +78,14 @@ func listUsers() async throws {
 }
 
 func createDatabase() async throws {
-    let databases = Databases(client, "moviesDB")
+    let databases = Databases(client)
     print("Running Create Database API")
 
     do {
-        let database = try await databases.create(name: "Movies")
+        let database = try await databases.create(
+            databaseId: ID.unique(),
+            name: "Movies"
+        )
         databaseId = database.id
         print(database.toMap())
     } catch {
@@ -91,11 +94,11 @@ func createDatabase() async throws {
 }
 
 func deleteDatabase() async throws {
-    let databases = Databases(client, databaseId)
+    let databases = Databases(client)
     print("Running Delete Database API")
 
     do {
-        _ = try await databases.delete()
+        _ = try await databases.delete(databaseId: databaseId)
         print("Database deleted!")
     } catch {
         print(error.localizedDescription)
@@ -103,21 +106,26 @@ func deleteDatabase() async throws {
 }
 
 func createCollection() async throws {
-    let databases = Databases(client, databaseId)
+    let databases = Databases(client)
     print("Running Create Collection API")
 
     do {
         let collection = try await databases.createCollection(
-            collectionId: "unique()",
+            databaseId: databaseId,
+            collectionId: ID.unique(),
             name: "Movies",
-            permission: "document",
-            read: ["role:all"],
-            write: ["role:all"]
+            permissions: [
+                Permission.read(Role.any()),
+                Permission.create(Role.users()),
+                Permission.update(Role.users()),
+                Permission.delete(Role.users())
+            ]
         )
         collectionId = collection.id
         print(collection.toMap())
 
         let stringAttr = try await databases.createStringAttribute(
+            databaseId: databaseId,
             collectionId: collectionId,
             key: "name",
             size: 60,
@@ -126,34 +134,43 @@ func createCollection() async throws {
         print(stringAttr.toMap())
 
         let intAttr = try await databases.createIntegerAttribute(
+            databaseId: databaseId,
             collectionId: collectionId,
             key: "releaseYear",
-            xrequired: true,
-            array: false
+            xrequired: true
         )
         print(intAttr.toMap())
 
         let floatAttr = try await databases.createFloatAttribute(
+            databaseId: databaseId,
             collectionId: collectionId,
             key:"rating",
             xrequired: true,
             min: 0.0,
-            max: 99.99,
-            array: false
+            max: 99.99
         )
         print(floatAttr.toMap())
 
         let boolAttr = try await databases.createBooleanAttribute(
+            databaseId: databaseId,
             collectionId: collectionId,
             key: "kids",
-            xrequired: true,
-            array: false
+            xrequired: true
         )
         print(boolAttr.toMap())
+
+        let emailAttr = try await databases.createEmailAttribute(
+            databaseId: databaseId,
+            collectionId: collectionId,
+            key: "email",
+            xrequired: true
+        )
+        print(emailAttr.toMap())
 
         sleep(3)
 
         let index = try await databases.createIndex(
+            databaseId: databaseId,
             collectionId: collectionId,
             key: "name_email_index",
             type: "fulltext",
@@ -166,11 +183,13 @@ func createCollection() async throws {
 }
 
 func listCollection() async throws {
-    let databases = Databases(client, databaseId)
+    let databases = Databases(client)
     print("Running List Collection API")
 
     do {
-        let collectionList = try await databases.listCollections()
+        let collectionList = try await databases.listCollections(
+            databaseId: databaseId
+        )
         print(collectionList.toMap())
     } catch {
         print(error.localizedDescription)
@@ -178,11 +197,14 @@ func listCollection() async throws {
 }
 
 func deleteCollection() async throws {
-    let databases = Databases(client, databaseId)
+    let databases = Databases(client)
     print("Running Delete Collection API")
 
     do {
-        _ = try await databases.deleteCollection(collectionId: collectionId)
+        _ = try await databases.deleteCollection(
+            databaseId: databaseId,
+            collectionId: collectionId
+        )
         print("Collection deleted!")
     } catch {
         print(error.localizedDescription)
@@ -190,21 +212,23 @@ func deleteCollection() async throws {
 }
 
 func createDocument() async throws {
-    let databases = Databases(client, databaseId)
+    let databases = Databases(client)
     print("Running Add Document API")
 
     do {
         let document = try await databases.createDocument(
+            databaseId: databaseId,
             collectionId: collectionId,
-            documentId: "unique()",
+            documentId: ID.unique(),
             data: [
                 "name": "The Matrix",
                 "releaseYear": 1999,
                 "rating": 8.7,
-                "kids": true
+                "kids": false
             ],
-            read: ["role:all"],
-            write: ["role:all"]
+            permissions: [
+                Permission.read(Role.any())
+            ]
         )
         documentId = document.id
         print(document.toMap())
@@ -214,11 +238,14 @@ func createDocument() async throws {
 }
 
 func listDocuments() async throws {
-    let databases = Databases(client, databaseId)
+    let databases = Databases(client)
     print("Running List Document API")
 
     do {
-        let documentList = try await databases.listDocuments(collectionId: collectionId)
+        let documentList = try await databases.listDocuments(
+            databaseId: databaseId,
+            collectionId: collectionId
+        )
         print(documentList.toMap())
     } catch {
         print(error.localizedDescription)
@@ -226,11 +253,12 @@ func listDocuments() async throws {
 }
 
 func deleteDocument() async throws {
-    let databases = Databases(client, databaseId)
+    let databases = Databases(client)
     print("Running Delete Document API")
     
     do {
         _ = try await databases.deleteDocument(
+            databaseId: databaseId,
             collectionId: collectionId, 
             documentId: documentId
         )
@@ -246,11 +274,15 @@ func createBucket() async throws {
 
     do {
         let bucket = try await storage.createBucket(
-            bucketId: "unique()",
+            bucketId: ID.unique(),
             name: "Movies",
-            permission: "bucket",
-            read: ["role:all"],
-            write: ["role:all"]
+            permissions: [
+                Permission.read(Role.any()),
+                Permission.create(Role.users()),
+                Permission.update(Role.users()),
+                Permission.delete(Role.users())
+            ],
+            fileSecurity: true
         )
         bucketId = bucket.id
         print(bucket.toMap())
@@ -271,10 +303,11 @@ func uploadFile() async throws {
     do {
         let file = try await storage.createFile(
             bucketId: bucketId,
-            fileId: "unique()",
+            fileId: ID.unique(),
             file: file,
-            read: ["role:all"],
-            write: [],
+            permissions: [
+                Permission.read(Role.any())
+            ],
             onProgress: nil
         )
         fileId = file.id
@@ -289,7 +322,9 @@ func listFiles() async throws {
     print("Running List File API")
     
     do {
-        let fileList = try await storage.listFiles(bucketId: bucketId)
+        let fileList = try await storage.listFiles(
+            bucketId: bucketId
+        )
         print(fileList.toMap())
     } catch {
         print(error.localizedDescription)
@@ -330,10 +365,10 @@ func createFunction() async throws {
 
     do {
         let function = try await functions.create(
-            functionId: "unique()",
+            functionId: ID.unique(),
             name: "Test Function",
-            execute: [],
-            runtime: "python-3.9"
+            execute: [Role.any()],
+            runtime: "php-8.0"
         )
         functionId = function.id
         print(function.toMap())
