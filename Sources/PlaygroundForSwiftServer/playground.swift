@@ -3,8 +3,8 @@ import NIO
 import Foundation
 
 let host = "YOUR_ENDPOINT"
-let projectId = "test"
-let apiKey = "71cb32ef798c2b7aa...3d914"
+let projectId = "YOUR_PROJECT_ID"
+let apiKey = "YOUR_API_KEY"
 
 var databaseId = ""
 var collectionId = ""
@@ -56,7 +56,7 @@ func createUser() async throws {
         let user = try await users.create(
             userId: ID.unique(),
             email: "email@example.com",
-            password:"password"
+            password: "password"
         )
         userId = user.id
         print(user.toMap())
@@ -224,7 +224,8 @@ func createDocument() async throws {
                 "name": "The Matrix",
                 "releaseYear": 1999,
                 "rating": 8.7,
-                "kids": false
+                "kids": false,
+                "email": "team@appwrite.io"
             ],
             permissions: [
                 Permission.read(Role.any())
