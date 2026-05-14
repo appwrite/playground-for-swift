@@ -9,12 +9,9 @@ let package = Package(
         .macOS(.v11)
     ],
     dependencies: [
-        // Dependencies declare other packages that this package depends on.
-        .package(name: "Appwrite", url: "https://github.com/appwrite/sdk-for-swift", .exact("1.0.0"))
+        .package(name: "Appwrite", url: "https://github.com/appwrite/sdk-for-swift", .exact("5.0.2")),
     ],
     targets: [
-        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-        // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .executableTarget(
             name: "PlaygroundForSwiftServer",
             dependencies: [

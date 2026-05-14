@@ -129,7 +129,7 @@ func createCollection() async throws {
             collectionId: collectionId,
             key: "name",
             size: 60,
-            xrequired: true
+            required: true
         )
         print(stringAttr.toMap())
 
@@ -137,7 +137,7 @@ func createCollection() async throws {
             databaseId: databaseId,
             collectionId: collectionId,
             key: "releaseYear",
-            xrequired: true
+            required: true
         )
         print(intAttr.toMap())
 
@@ -145,7 +145,7 @@ func createCollection() async throws {
             databaseId: databaseId,
             collectionId: collectionId,
             key:"rating",
-            xrequired: true,
+            required: true,
             min: 0.0,
             max: 99.99
         )
@@ -155,7 +155,7 @@ func createCollection() async throws {
             databaseId: databaseId,
             collectionId: collectionId,
             key: "kids",
-            xrequired: true
+            required: true
         )
         print(boolAttr.toMap())
 
@@ -163,7 +163,7 @@ func createCollection() async throws {
             databaseId: databaseId,
             collectionId: collectionId,
             key: "email",
-            xrequired: true
+            required: true
         )
         print(emailAttr.toMap())
 
@@ -173,7 +173,7 @@ func createCollection() async throws {
             databaseId: databaseId,
             collectionId: collectionId,
             key: "name_email_index",
-            type: "fulltext",
+            type: .fulltext,
             attributes: ["name", "email"]
         )
         print(index.toMap())
@@ -368,8 +368,8 @@ func createFunction() async throws {
         let function = try await functions.create(
             functionId: ID.unique(),
             name: "Test Function",
-            execute: [Role.any()],
-            runtime: "php-8.0"
+            runtime: .php80,
+            execute: [Role.any()]
         )
         functionId = function.id
         print(function.toMap())
